@@ -1,7 +1,7 @@
 -- {{{ License
 --
--- Awesome configuration, using awesome 3.4.10 on Ubuntu 11.10
---   * Tony N <tony@git-pull.com>
+-- Awesome configuration, using awesome 3.4.11 on Gentoo
+--   * based off Tony N's config <tony@git-pull.com>
 --
 -- This work is licensed under the Creative Commons Attribution-Share
 -- Alike License: http://creativecommons.org/licenses/by-sa/3.0/
@@ -11,28 +11,70 @@
 
 -- {{{ Libraries
 require("awful")
-require("awful.rules")
 require("awful.autofocus")
+require("awful.rules")
+-- Theme handling library
+require("beautiful")
+-- Notification library
 require("naughty")
+-- Widgets
+require("wibox")
 -- User libraries
 require("vicious") -- ./vicious
 require("helpers") -- helpers.lua
+-- }}}
+
+-- {{{ Error handling
+-- Check if awesome encountered an error during startup and fell back to
+-- another config (This code will only ever execute for the fallback config)
+if awesome.startup_errors then
+    naughty.notify({ preset = naughty.config.presets.critical,
+                     title = "Oops, there were errors during startup!",
+                     text = awesome.startup_errors })
+end
+
+-- Handle runtime errors after startup
+do
+    local in_error = false
+    awesome.add_signal("debug::error", function (err)
+        -- Make sure we don't go into an endless error loop
+        if in_error then return end
+        in_error = true
+
+        naughty.notify({ preset = naughty.config.presets.critical,
+                         title = "Oops, an error happened!",
+                         text = err })
+        in_error = false
+    end)
+end
 -- }}}
 
 -- {{{ Default configuration
 altkey = "Mod1"
 modkey = "Mod4" -- your windows/apple key
 
-terminal = whereis_app('urxvtcd') and 'urxvtcd' or 'x-terminal-emulator' -- also accepts full path
+terminal = whereis_app('urxvt') and 'urxvt' or 'x-terminal-emulator' -- also accepts full path
 editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
+
+web_browser = "firefox"
+pic_viewer = "gpicview"
+pdf_viewer = "epdfview"
+im = "gajim"
+mail = "sylpheed"
+gimp = "gimp"
+screen_lock = "slock"
+
+dev = "eclipse"
+cam = "guvcview"
+sip = "ekiga"
 
 wallpaper_app = "feh" -- if you want to check for app before trying
 wallpaper_dir = os.getenv("HOME") .. "/Pictures/Wallpaper" -- wallpaper dir
 
 -- taglist numerals
---- arabic, chinese, {east|persian}_arabic, roman, thai, random
-taglist_numbers = "chinese" -- we support arabic (1,2,3...),
+--- arabic, japanese, {east|persian}_arabic, roman, thai, random
+taglist_numbers = "japanese" -- we support arabic (1,2,3...),
 
 cpugraph_enable = true -- Show CPU graph
 cputext_format = " $1%" -- %1 average cpu, %[2..] every other thread individually
@@ -42,6 +84,7 @@ memtext_format = " $1%" -- %1 percentage, %2 used %3 total %4 free
 
 date_format = "%a %m/%d/%Y %l:%M%p" -- refer to http://en.wikipedia.org/wiki/Date_(Unix) specifiers
 
+netgraph_enable = false -- Show network graph
 networks = {'eth0'} -- add your devices network interface here netwidget, only shows first one thats up.
 
 require_safe('personal')
@@ -58,27 +101,33 @@ local exec   = awful.util.spawn
 local sexec  = awful.util.spawn_with_shell
 
 -- Beautiful theme
-beautiful.init(awful.util.getdir("config") .. "/themes/zhongguo/zhongguo.lua")
+beautiful.init(awful.util.getdir("config") .. "/themes/current_theme/theme.lua")
 
 -- Window management layouts
-layouts = {
-  awful.layout.suit.tile,
-  awful.layout.suit.tile.bottom,
-  awful.layout.suit.tile.top,
-  --awful.layout.suit.fair,
-  awful.layout.suit.max,
-  awful.layout.suit.magnifier,
-  --awful.layout.suit.floating
+layouts =
+{
+    awful.layout.suit.tile,
+    awful.layout.suit.tile.left,
+    --awful.layout.suit.tile.bottom,
+    --awful.layout.suit.tile.top,
+    --awful.layout.suit.fair,
+    --awful.layout.suit.fair.horizontal,
+    --awful.layout.suit.spiral,
+    --awful.layout.suit.spiral.dwindle,
+    awful.layout.suit.max,
+    --awful.layout.suit.max.fullscreen,
+    awful.layout.suit.magnifier,
+    awful.layout.suit.floating
 }
 -- }}}
 
 -- {{{ Tags
 
 -- Taglist numerals
-taglist_numbers_langs = { 'arabic', 'chinese', 'east_arabic', 'persian_arabic', }
+taglist_numbers_langs = { 'arabic', 'japanese', 'east_arabic', 'persian_arabic', }
 taglist_numbers_sets = {
 	arabic={ 1, 2, 3, 4, 5, 6, 7, 8, 9 },
-	chinese={"一", "二", "三", "四", "五", "六", "七", "八", "九", "十"},
+	japanese={"一", "二", "三", "四", "五", "六", "七", "八", "九", "十"},
 	east_arabic={'١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'}, -- '٠' 0
 	persian_arabic={'٠', '١', '٢', '٣', '۴', '۵', '۶', '٧', '٨', '٩'},
 	roman={'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'},
@@ -89,8 +138,6 @@ taglist_numbers_sets = {
 tags = {}
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-      --tags[s] = awful.tag({"一", "二", "三", "四", "五", "六", "七", "八", "九", "十"}, s, layouts[1])
-      --tags[s] = awful.tag(taglist_numbers_sets[taglist_numbers], s, layouts[1])
 	if taglist_numbers == 'random' then
 		math.randomseed(os.time())
 		local taglist = taglist_numbers_sets[taglist_numbers_langs[math.random(table.getn(taglist_numbers_langs))]]
@@ -98,7 +145,6 @@ for s = 1, screen.count() do
 	else
 		tags[s] = awful.tag(taglist_numbers_sets[taglist_numbers], s, layouts[1])
 	end
-    --tags[s] = awful.tag({ 1, 2, 3, 4, 5, 6, 7, 8, 9 }, s, layouts[1])
 end
 -- }}}
 
@@ -238,19 +284,20 @@ upicon = widget({ type = "imagebox" })
 -- Initialize widget
 netwidget = widget({ type = "textbox" })
 -- Register widget
-vicious.register(netwidget, vicious.widgets.net,
-	function (widget, args)
-		for _,device in pairs(networks) do
-			if tonumber(args["{".. device .." carrier}"]) > 0 then
-				netwidget.found = true
-				dnicon.image = image(beautiful.widget_net)
-				upicon.image = image(beautiful.widget_netup)
-				return print_net(device, args["{"..device .." down_kb}"], args["{"..device.." up_kb}"])
-			end
-		end
-	end, 3)
+if netgraph_enable then
+    vicious.register(netwidget, vicious.widgets.net,
+    	function (widget, args)
+    		for _,device in pairs(networks) do
+    			if tonumber(args["{".. device .." carrier}"]) > 0 then
+    				netwidget.found = true
+    				dnicon.image = image(beautiful.widget_net)
+    				upicon.image = image(beautiful.widget_netup)
+    				return print_net(device, args["{"..device .." down_kb}"], args["{"..device.." up_kb}"])
+    			end
+    		end
+    	end, 3)
+end
 -- }}}
-
 
 
 -- {{{ Volume level
@@ -402,7 +449,6 @@ globalkeys = awful.util.table.join(
             awful.client.focus.byidx(-1)
             if client.focus then client.focus:raise() end
         end),
-    awful.key({ modkey,           }, "w", function () mymainmenu:show({keygrabber=true}) end),
 
     -- Layout manipulation
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
@@ -419,7 +465,17 @@ globalkeys = awful.util.table.join(
         end),
 
     -- Standard program
-    awful.key({ modkey, "Shift"   }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey,           }, "w", function () awful.util.spawn(web_browser) end),
+    awful.key({ modkey,           }, "p", function () awful.util.spawn(pdf_viewer) end),
+    awful.key({ modkey,           }, "a", function () awful.util.spawn(pic_viewer) end),
+    awful.key({ modkey,           }, "g", function () awful.util.spawn(gimp) end),
+    awful.key({ modkey,           }, "i", function () awful.util.spawn(im) end),
+    awful.key({ modkey,           }, "s", function () awful.util.spawn(mail) end),
+    awful.key({ modkey,           }, "d", function () awful.util.spawn(dev) end),
+    awful.key({ modkey,           }, "c", function () awful.util.spawn(cam) end),
+    awful.key({ modkey,           }, "b", function () awful.util.spawn(sip) end),
+    awful.key({ modkey,           }, "q", function () awful.util.spawn(screen_lock) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
@@ -442,19 +498,26 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey }, "x",
               function ()
                   awful.prompt.run({ prompt = "Run Lua code: " },
-                  mypromptbox[mouse.screen].widget,
+                  promptbox[mouse.screen].widget,
                   awful.util.eval, nil,
                   awful.util.getdir("cache") .. "/history_eval")
               end)
 )
 
 clientkeys = awful.util.table.join(
-    awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
-    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
-    awful.key({ modkey,           }, "t",  awful.client.floating.toggle                     ),
-    awful.key({ modkey,           }, "Return", function (c) c:swap(awful.client.getmaster()) end),
-    awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
-    awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
+    awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen         end),
+    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                                end),
+    awful.key({ modkey,           }, "t",      awful.client.floating.toggle                            ),
+    awful.key({ modkey, "Shift"   }, "Return", function (c) c:swap(awful.client.getmaster())        end),
+    awful.key({ modkey,           }, "o",      function (c) awful.client.movetoscreen(c,c.screen+1) end),
+    awful.key({ modkey, "Shift"   }, "o",      function (c) awful.client.movetoscreen(c,c.screen-1) end),
+    awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                              end),
+    awful.key({ modkey,           }, "n",
+        function (c)
+            -- The client currently has the input focus, so it cannot be
+            -- minimized, since minimized clients can't have the focus.
+            c.minimized = true
+        end),
     awful.key({ modkey,           }, "m",
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
@@ -513,13 +576,30 @@ root.keys(globalkeys)
 
 -- {{{ Rules
 awful.rules.rules = {
-    { rule = { }, properties = {
-      focus = true,      size_hints_honor = false,
-      keys = clientkeys, buttons = clientbuttons,
-      border_width = beautiful.border_width,
-      border_color = beautiful.border_normal }
+    { rule = { },
+      properties = {
+        focus = true,
+        size_hints_honor = false,
+        keys = clientkeys,
+        buttons = clientbuttons,
+        border_width = beautiful.border_width,
+        border_color = beautiful.border_normal }
     },
-    { rule = { class = "ROX-Filer" },   properties = { floating = true } },
+    { rule = { class = 'MPlayer'   },
+      properties = { floating = true } },
+    { rule = { class = 'mplayer2'  },
+      properties = { floating = true } },
+    { rule = { class = 'Vlc'       },
+      properties = { floating = true } },
+    { rule = { class = 'Gimp'      },
+      properties = { floating = true } },
+    { rule = { class = 'Firefox'   },
+      properties = { floating = true } },
+    { rule = { class = 'Vncviewer' },
+      properties = { floating = true } },
+    { rule = { class = "gajim.py" },
+      properties = { tag = tags[1][1] },
+      callback = awful.client.setslave }
 }
 -- }}}
 
@@ -584,7 +664,7 @@ mytimer:add_signal("timeout", function()
 
   -- tell awsetbg to randomly choose a wallpaper from your wallpaper directory
   if file_exists(wallpaper_dir) and whereis_app('feh') then
-	  os.execute(wallpaper_cmd)
+    os.execute(wallpaper_cmd)
   end
   -- stop the timer (we don't need multiple instances running at the same time)
   mytimer:stop()

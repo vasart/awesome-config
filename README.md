@@ -1,24 +1,26 @@
-Version: Awesome 3.4.10
+Version: Awesome 3.4.11
 Awesome Homepage: http://awesome.naquadah.org
 
-Based off of [Adrian C's awesome config](http://git.sysphere.org/awesome-configs).
+Based off of [Tony Narlock's awesome config](http://github.com/tony/awesome-config).
 
-The aim of this project is to create a robust awesome configuration that works out of the box
+The aim of his project is to create a robust awesome configuration that works out of the box
 with minimal configuration.
 
 Features
 --------
-  * `Mod + Shift + Enter` is Terminal
+  * `Mod + Enter` is Terminal
   * `Mod + Control + r` is reload rc.lua
   * Battery widget - autodetects if you have battery, adds widget
   * Network widget - pick your devices, eth0 for ethernet, wlan0 for wireless or custom
-  * Number taglists in various number systems - arabic (1,2,3...), chinese
+  * Number taglists in various number systems - arabic (1,2,3...), japanese
   * [mpd](http://mpd.wikia.com/wiki/Music_Player_Daemon_Wiki) widget - autodetects if song player, adds widget (requires curl)
   * Random background picker (requires feh)
+  * Symlink ~/.config/awesome/current_theme points to the selected theme. So you don't need to edit your config to change theme.
 
 Credits
 -------
   * rc.lua and zhongguo thing is based off [Adrian C.'s awesome configuration](http://git.sysphere.org/awesome-configs/). Licensed [CC Attribute Share-Alike](http://creativecommons.org/licenses/by-sa/3.0/).
+  * autostart is based off [Tuomas Jormola configuration](http://scm.solitudo.net/tj-awesome-config.git) Licensed [GNU General Public License Version 2.0](http://www.gnu.org/licenses/gpl-2.0.html)
   * Some icons used on the bar are from [Yusuke Kamiyaman](http://p.yusukekamiyamane.com/). [Creative Commons Attribution](http://creativecommons.org/licenses/by/3.0/).
 
 Installation
@@ -32,7 +34,7 @@ To use this configuration, git clone this, and mv awesome-config to ~/.config/aw
 Try the one liner:
 
 ```bash
-git clone https://github.com/tony/awesome-config.git ~/.config/awesome && cd ~/.config/awesome && git submodule init && git submodule update && less ~/.config/awesome/README.md`
+git clone https://github.com/vasart/awesome-config.git ~/.config/awesome && cd ~/.config/awesome && git submodule init && git submodule update && less ~/.config/awesome/README.md`
 ```
 
 Configuration
@@ -65,23 +67,8 @@ networks = {'eth0', 'wlan0'} -- Add your devices network interface here netwidge
   You can use `Mod + Control + r` to reload configuation.
 
 ### Autorun
-  Create a file called `autorun.lua` in `~/.config/awesome`.
-
-  First is the binary of the app, the second is the arguments. So to load `xscreensaver -no-splash` we do:
-  `run_once("xscreensaver", "-no-splash")`.
-
-```lua
-run_once("xscreensaver", "-no-splash")         -- starts screensaver daemon 
-run_once("xsetroot", "-cursor_name left_ptr")  -- sets the cursor icon
-
---run_once("redshift", "-o -l 0:0 -b 0.5 -t 6500:6500") -- brightness
-run_once("ibus-daemon", "--xim") -- ibus
-run_once(os.getenv("HOME") .. "/.dropbox-dist/dropboxd") -- dropbox
-run_once("nm-applet") -- networking
-
-run_once("wmname", "LG3D") -- java fix
-
-run_once("sh " .. os.getenv("HOME") .. "/.screenlayout/dual-monitor.sh") -- set screens up
+  Create a directory called `autorun` in `~/.config/awesome`.
+  Fill it with symlinks to the real applications like `/usr/bin/firefox`.
 ```
 
 Optional stuff
@@ -111,8 +98,4 @@ You may also want to:
 
 Then restart X.
 
-
-by Tony Narlock (tony@git-pull.com)
-
-* Github: http://www.github.com/tony
-* Website: http://www.git-pull.com
+by Vasiliy Artemev
