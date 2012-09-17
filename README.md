@@ -69,7 +69,6 @@ networks = {'eth0', 'wlan0'} -- Add your devices network interface here netwidge
 ### Autorun
   Create a directory called `autorun` in `~/.config/awesome`.
   Fill it with symlinks to the real applications like `/usr/bin/firefox`.
-```
 
 Optional stuff
 --------------
